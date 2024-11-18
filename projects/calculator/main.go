@@ -1,7 +1,29 @@
 package main
 
-// реализовать calculator(firstChan <-chan int, secondChan <-chan int, stopChan <-chan struct{}) <-chan int
+import "fmt"
+
+func calculator(firstChan <-chan int, secondChan <-chan int, stopChan <-chan struct{}) <-chan int {
+	ans := make(chan int)
+	go func(a chan int) {
+		defer close(a)
+		select {
+		case b := <-firstChan:
+			a <- b * b
+		case d := <-secondChan:
+			a <- d * 3
+		case <-stopChan:
+			return
+		}
+	}(ans)
+	return ans
+}
 
 func main() {
-	// здесь должен быть код для проверки правильности работы функции calculator(firstChan <-chan int, secondChan <-chan int, stopChan <-chan struct{}) <-chan int
+	first, second := make(chan int), make(chan int)
+	stopChan := make(chan struct{})
+	calc := calculator(first, second, stopChan)
+	first <- 4
+	//second <- 2
+	close(stopChan)
+	fmt.Println(<-calc)
 }
